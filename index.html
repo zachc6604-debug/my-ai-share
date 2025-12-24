@@ -28,53 +28,52 @@
         <p id="status" class="text-xs text-center mt-4 text-gray-400"></p>
     </div>
 
-    <script>
-        // 【关键】请在这里粘贴你刚才在 Google 申请的 API Key
-        const MY_KEY = "AIzaSyC8Ihvm8l9_vMG5VRskkF8V9-YAy-YXlvg"; 
+   <script>
+    // 你的 API Key 已经填在这里了
+    const MY_KEY = "AIzaSyC8Ihvm8l9_vMG5VRskkF8V9-YAy-YXlvg"; 
 
-        async function askAI() {
-            const display = document.getElementById('aiText');
-            const status = document.getElementById('status');
-            display.innerText = "AI 正在思考爆款文案...";
+    async function askAI() {
+        const display = document.getElementById('aiText');
+        const status = document.getElementById('status');
+        display.innerText = "✨ AI 正在构思爆款话术...";
+        
+        try {
+            // 这里是去敲 Google Gemini 的门
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_KEY}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: "你是一位社交媒体营销大师。请为一张‘海边惬意下午茶’的图片写一段简短、吸引人分享的 Instagram 文案，带上 Emoji。" }] }]
+                })
+            });
+            const data = await response.json();
             
+            // 把 AI 写好的话展示在网页上
+            const aiResult = data.candidates[0].content.parts[0].text;
+            display.innerText = aiResult;
+            status.innerText = "✅ 生成成功！";
+        } catch (err) {
+            display.innerText = "❌ AI 暂时无法连接，请确认 API Key 是否有效。";
+            console.error(err);
+        }
+    }
+
+    async function share() {
+        const text = document.getElementById('aiText').innerText;
+        if (navigator.share) {
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_KEY}`;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: "请为这张图片写一句非常吸引人的 Instagram 营销短文案。图片内容是：海边惬意的下午茶。请加上 Emoji。" }] }]
-                    })
+                await navigator.share({
+                    title: '好店推荐',
+                    text: text,
+                    url: window.location.href
                 });
-                const data = await response.json();
-                const aiResult = data.candidates[0].content.parts[0].text;
-                display.innerText = aiResult;
-                status.innerText = "生成成功！";
-            } catch (err) {
-                display.innerText = "哎呀，AI 睡着了。请检查 API Key 是否填写正确。";
-                console.error(err);
-            }
+            } catch (e) { console.log('取消分享'); }
+        } else {
+            alert("请在手机浏览器（Safari/Chrome）中打开以使用分享功能");
         }
+    }
 
-        async function share() {
-            const text = document.getElementById('aiText').innerText;
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: '好物分享',
-                        text: text,
-                        url: window.location.href
-                    });
-                } catch (e) { console.log('用户取消分享'); }
-            } else {
-                alert("浏览器不支持分享功能，请在手机浏览器打开。");
-            }
-        }
-
-        // 首次打开自动生成
-        if(MY_KEY !== "AIzaSyC8Ihvm8l9_vMG5VRskkF8V9-YAy-YXlvg") {
-            window.onload = askAI;
-        }
-    </script>
-</body>
-</html>
+    // 这一行非常重要：确保页面加载后自动运行 AI
+    window.onload = askAI;
+</script>
