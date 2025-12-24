@@ -51,7 +51,7 @@
                 const data = await response.json();
 
                 // 【关键修改】如果 Google 报错，把报错原因直接显示在网页下方
-                if (data.error) {
+                 (data.error) {
                     display.innerText = "❌ AI 暂时无法回答";
                     log.innerText = "错误原因: " + data.error.message;
                     return;
