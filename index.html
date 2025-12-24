@@ -14,66 +14,68 @@
             <h1 class="text-xl font-bold text-gray-800 text-center">AI 专属营销文案</h1>
             
             <div id="aiText" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-gray-700 text-sm italic min-h-[80px] flex items-center">
-                点击下方按钮，让 AI 生成文案...
+                ✨ 正在连接 AI 大脑...
             </div>
 
             <button onclick="askAI()" class="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition">
-                🪄 AI 重新写一段
+                🪄 换个文案
             </button>
 
             <button onclick="share()" class="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-semibold shadow-md">
                 🚀 分享到社交媒体
             </button>
         </div>
-        <p id="status" class="text-xs text-center mt-4 text-gray-400"></p>
+        <p id="error-log" class="text-[10px] text-red-400 mt-4 text-center"></p>
     </div>
 
-   <script>
+    <script>
+        // 你的 Key 没问题，保持原样
+        const MY_KEY = "AIzaSyC8Ihvm8l9_vMG5VRskkF8V9-YAy-YXlvg"; 
 
-    const MY_KEY = "AIzaSyC8Ihvm8l9_vMG5VRskkF8V9-YAy-YXlvg"; 
-
-    async function askAI() {
-        const display = document.getElementById('aiText');
-        const status = document.getElementById('status');
-        display.innerText = "✨ AI 正在构思爆款话术...";
-        
-        try {
-         
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_KEY}`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: "你是一位社交媒体营销大师。请为一张‘海边惬意下午茶’的图片写一段简短、吸引人分享的 Instagram 文案，带上 Emoji。" }] }]
-                })
-            });
-            const data = await response.json();
+        async function askAI() {
+            const display = document.getElementById('aiText');
+            const log = document.getElementById('error-log');
+            display.innerText = "⏳ AI 正在思考...";
+            log.innerText = "";
             
-            
-            const aiResult = data.candidates[0].content.parts[0].text;
-            display.innerText = aiResult;
-            status.innerText = "✅ 生成成功！";
-        } catch (err) {
-            display.innerText = "❌ AI 暂时无法连接，请确认 API Key 是否有效。";
-            console.error(err);
-        }
-    }
-
-    async function share() {
-        const text = document.getElementById('aiText').innerText;
-        if (navigator.share) {
             try {
-                await navigator.share({
-                    title: '好店推荐',
-                    text: text,
-                    url: window.location.href
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${MY_KEY}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: "写一句吸引人的海边下午茶文案，带Emoji" }] }]
+                    })
                 });
-            } catch (e) { console.log('取消分享'); }
-        } else {
-            alert("请在手机浏览器（Safari/Chrome）中打开以使用分享功能");
-        }
-    }
 
-    
-    window.onload = askAI;
-</script>
+                const data = await response.json();
+
+                // 【关键修改】如果 Google 报错，把报错原因直接显示在网页下方
+                if (data.error) {
+                    display.innerText = "❌ AI 暂时无法回答";
+                    log.innerText = "错误原因: " + data.error.message;
+                    return;
+                }
+                
+                const aiResult = data.candidates[0].content.parts[0].text;
+                display.innerText = aiResult;
+            } catch (err) {
+                display.innerText = "❌ 网络连接失败";
+                log.innerText = "请检查是否开启了代理工具，因为国内无法直接连接 Google API";
+            }
+        }
+
+        function share() {
+            const text = document.getElementById('aiText').innerText;
+            if (navigator.share) {
+                navigator.share({ title: '分享', text: text, url: window.location.href });
+            } else {
+                alert("请在手机浏览器打开以使用分享功能");
+            }
+        }
+
+        // 页面打开时立刻执行
+        window.onload = askAI;
+    </script>
+</body>
+</html>
